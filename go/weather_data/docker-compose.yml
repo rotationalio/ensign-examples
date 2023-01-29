@@ -1,0 +1,38 @@
+version: '3'
+services:
+  producer:
+    image: golang:1.19
+    restart: unless-stopped
+    volumes:
+    - .:/app
+    - $GOPATH/pkg/mod:/go/pkg/mod
+    working_dir: /app/producer/
+    command: go run main.go
+    environment:
+      WAPIKEY: ${WAPIKEY}
+
+  consumer:
+    image: golang:1.19
+    restart: unless-stopped
+    depends_on:
+    - weather_db
+    volumes:
+    - .:/app
+    - $GOPATH/pkg/mod:/go/pkg/mod
+    working_dir: /app/consumer/
+    command: go run main.go db.go
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  weather_db:
+    image: postgres:12
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    container_name: weather_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
