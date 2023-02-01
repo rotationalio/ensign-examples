@@ -27,7 +27,6 @@ var (
 	weather_api_topic = "current_weather"
 	//weather_info is the topic to which the subscriber posts messages to be inserted into the database
 	weather_insert_topic = "weather_info"
-	marshaler            = ensign.EventMarshaler{}
 )
 
 type ApiWeatherInfo struct {
@@ -112,9 +111,13 @@ func createPostgresConnection() *stdSQL.DB {
 }
 
 func createSubscriber(logger watermill.LoggerAdapter) message.Subscriber {
-	sub, err := ensign.NewSubscriber(
+	subscriber, err := ensign.NewSubscriber(
 		ensign.SubscriberConfig{
-			Unmarshaler: marshaler,
+			EnsignConfig: &ensign.Options{
+				ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
+				ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
+			},
+			Unmarshaler: ensign.EventMarshaler{},
 		},
 		logger,
 	)
@@ -122,7 +125,7 @@ func createSubscriber(logger watermill.LoggerAdapter) message.Subscriber {
 		panic(err)
 	}
 
-	return sub
+	return subscriber
 }
 
 func createPublisher(db *stdSQL.DB) message.Publisher {

@@ -10,6 +10,9 @@ services:
     command: go run main.go
     environment:
       WAPIKEY: ${WAPIKEY}
+      ENSIGN_CLIENT_ID: ${ENSIGN_CLIENT_ID}
+      ENSIGN_CLIENT_SECRET: ${ENSIGN_CLIENT_SECRET}
+
 
   consumer:
     image: golang:1.19
@@ -25,6 +28,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ENSIGN_CLIENT_ID: ${ENSIGN_CLIENT_ID}
+      ENSIGN_CLIENT_SECRET: ${ENSIGN_CLIENT_SECRET}
 
   weather_db:
     image: postgres:12
