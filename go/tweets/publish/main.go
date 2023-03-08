@@ -12,9 +12,9 @@ import (
 
 	twitter "github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rotationalio/ensign-examples/go/tweets/schemas"
-	api "github.com/rotationalio/ensign/pkg/api/v1beta1"
-	mimetype "github.com/rotationalio/ensign/pkg/mimetype/v1beta1"
-	ensign "github.com/rotationalio/ensign/sdks/go"
+	ensign "github.com/rotationalio/go-ensign"
+	api "github.com/rotationalio/go-ensign/api/v1beta1"
+	mimetype "github.com/rotationalio/go-ensign/mimetype/v1beta1"
 )
 
 type authorize struct {

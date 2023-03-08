@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/rotationalio/ensign-examples/go/tweets/schemas"
-	api "github.com/rotationalio/ensign/pkg/api/v1beta1"
-	ensign "github.com/rotationalio/ensign/sdks/go"
+	ensign "github.com/rotationalio/go-ensign"
+	api "github.com/rotationalio/go-ensign/api/v1beta1"
 )
 
 func main() {

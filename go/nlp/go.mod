@@ -7,7 +7,7 @@ require (
 	github.com/cdipaolo/sentiment v0.0.0-20200617002423-c697f64e7f10
 	github.com/jdkato/prose/v2 v2.0.0
 	github.com/rotationalio/baleen v0.2.1-0.20221110043856-645f7482b919
-	github.com/rotationalio/ensign v0.3.0
+	github.com/rotationalio/go-ensign v0.4.1
 )
 
 require (
@@ -22,14 +22,15 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rotationalio/watermill-ensign v0.1.0 // indirect
+	github.com/rotationalio/ensign v0.1.1 // indirect
+	github.com/rotationalio/watermill-ensign v0.2.0 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
 	golang.org/x/net v0.6.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	gonum.org/v1/gonum v0.12.0 // indirect
 	google.golang.org/genproto v0.0.0-20230202175211-008b39050e57 // indirect
-	google.golang.org/grpc v1.52.3 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/grpc v1.53.0 // indirect
+	google.golang.org/protobuf v1.29.0 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
 )
