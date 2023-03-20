@@ -1,4 +1,4 @@
-module github.com/rotationalio/ensign-examples/go/simple
+module github.com/rotationalio/ensign-examples/go/minimal
 
 go 1.19
 
