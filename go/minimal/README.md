@@ -10,7 +10,7 @@ Now clone this project:
 
 ```bash
 $ git clone git@github.com:rotationalio/ensign-examples.git
-$ cd ensign-examples/go/simple
+$ cd ensign-examples/go/minimal
 ```
 
 Next, go to your bash profile and create two new environment variables:
