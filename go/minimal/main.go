@@ -51,6 +51,7 @@ func main() {
 		}
 
 		for _, topic := range topics {
+			fmt.Println(topic)
 			if topic.Name == CocoaBeans {
 				var topicULID ulid.ULID
 				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
@@ -93,19 +94,16 @@ func main() {
 		panic("failed to create subscribe stream: " + err.Error())
 	}
 
-	go func() {
-		for msg := range events {
-			var m MessageInABottle
-			if err := json.Unmarshal(msg.Data, &m); err != nil {
-				panic(fmt.Errorf("failed to unmarshal message: %s", err))
-			}
-			fmt.Printf("At %s,\n%s\nsent you the following message...\n'%s'\n", m.Timestamp, m.Sender, m.Message)
-			return
-		}
-	}()
-
-	// Publish event
-	time.Sleep(1 * time.Second)
+	// Publish the message in a bottle
 	pub.Publish(topicID, e)
-	time.Sleep(1 * time.Second)
+
+	// Wait for events to come from the subscriber.
+	for msg := range events {
+		var m MessageInABottle
+		if err := json.Unmarshal(msg.Data, &m); err != nil {
+			panic(fmt.Errorf("failed to unmarshal message: %s", err))
+		}
+		fmt.Printf("At %s,\n%s\nsent you the following message...\n'%s'\n", m.Timestamp, m.Sender, m.Message)
+		return
+	}
 }
