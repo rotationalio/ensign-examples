@@ -26,8 +26,8 @@ func main() {
 	client, err := ensign.New(&ensign.Options{
 		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
 		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
+		AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
+		Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
 	})
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
@@ -51,13 +51,13 @@ func main() {
 		}
 
 		for _, topic := range topics {
-			fmt.Println(topic)
 			if topic.Name == CocoaBeans {
 				var topicULID ulid.ULID
 				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
 					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
 				}
 				topicID = topicULID.String()
+				break
 			}
 		}
 	}
@@ -95,7 +95,10 @@ func main() {
 	}
 
 	// Publish the message in a bottle
-	pub.Publish(topicID, e)
+	go func() {
+		time.Sleep(1 * time.Second)
+		pub.Publish(topicID, e)
+	}()
 
 	// Wait for events to come from the subscriber.
 	for msg := range events {

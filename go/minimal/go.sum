@@ -12,6 +12,8 @@ github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwp
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/rotationalio/go-ensign v0.4.3-0.20230321190313-00b7d47d1272 h1:mmxxHWyEXs61Fh4X8eL/s3lr08/NKDweHlxCg3IoUQw=
 github.com/rotationalio/go-ensign v0.4.3-0.20230321190313-00b7d47d1272/go.mod h1:tqPQGdnKjNJY88ASXPfm0igLf6EFzC2nthLfXBVJVLw=
+github.com/rotationalio/go-ensign v0.4.3-0.20230321200202-5bae0e5bdf20 h1:c5wF8WhBHzS4uzFWW3SlAUHy8MYQxF0vcVSV1KXRCHg=
+github.com/rotationalio/go-ensign v0.4.3-0.20230321200202-5bae0e5bdf20/go.mod h1:tqPQGdnKjNJY88ASXPfm0igLf6EFzC2nthLfXBVJVLw=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
