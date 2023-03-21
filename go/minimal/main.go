@@ -26,8 +26,8 @@ func main() {
 	client, err := ensign.New(&ensign.Options{
 		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
 		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
+		AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
+		Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
 	})
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
@@ -51,7 +51,6 @@ func main() {
 		}
 
 		for _, topic := range topics {
-			fmt.Println(topic)
 			if topic.Name == CocoaBeans {
 				var topicULID ulid.ULID
 				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
@@ -93,6 +92,8 @@ func main() {
 	if events, err = sub.Subscribe(); err != nil {
 		panic("failed to create subscribe stream: " + err.Error())
 	}
+
+	fmt.Printf("Publishing to topic id: %s\n", topicID)
 
 	// Publish the message in a bottle after waiting for a second
 	go func() {
