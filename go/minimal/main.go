@@ -94,8 +94,11 @@ func main() {
 		panic("failed to create subscribe stream: " + err.Error())
 	}
 
-	// Publish the message in a bottle
-	pub.Publish(topicID, e)
+	// Publish the message in a bottle after waiting for a second
+	go func() {
+		time.Sleep(1 * time.Second)
+		pub.Publish(topicID, e)
+	}()
 
 	// Wait for events to come from the subscriber.
 	for msg := range events {
