@@ -26,8 +26,8 @@ func main() {
 	client, err := ensign.New(&ensign.Options{
 		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
 		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443", // uncomment if you are in staging
+		AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
+		Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
 	})
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
