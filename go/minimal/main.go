@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/oklog/ulid"
+	"github.com/oklog/ulid/v2"
 	ensign "github.com/rotationalio/go-ensign"
 	api "github.com/rotationalio/go-ensign/api/v1beta1"
 	mimetype "github.com/rotationalio/go-ensign/mimetype/v1beta1"
@@ -27,16 +27,10 @@ func main() {
 		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
 		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
 		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443", // uncomment if you are in staging
+		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
 	})
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
-	}
-
-	// Create Ensign Publisher
-	pub, err := client.Publish(context.Background())
-	if err != nil {
-		panic(fmt.Errorf("could not create publisher: %s", err))
 	}
 
 	// Check to see if topic exists and create it if not
@@ -57,6 +51,7 @@ func main() {
 		}
 
 		for _, topic := range topics {
+			fmt.Println(topic)
 			if topic.Name == CocoaBeans {
 				var topicULID ulid.ULID
 				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
@@ -82,8 +77,11 @@ func main() {
 	}
 	e.Data, _ = json.Marshal(data)
 
-	// Publish event
-	pub.Publish(topicID, e)
+	// Create Ensign Publisher
+	pub, err := client.Publish(context.Background())
+	if err != nil {
+		panic(fmt.Errorf("could not create publisher: %s", err))
+	}
 
 	// Create a downstream consumer for the event stream
 	sub, err := client.Subscribe(context.Background(), topicID)
@@ -96,6 +94,10 @@ func main() {
 		panic("failed to create subscribe stream: " + err.Error())
 	}
 
+	// Publish the message in a bottle
+	pub.Publish(topicID, e)
+
+	// Wait for events to come from the subscriber.
 	for msg := range events {
 		var m MessageInABottle
 		if err := json.Unmarshal(msg.Data, &m); err != nil {
