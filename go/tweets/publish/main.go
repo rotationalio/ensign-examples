@@ -17,6 +17,8 @@ import (
 	mimetype "github.com/rotationalio/go-ensign/mimetype/v1beta1"
 )
 
+const DistSysTweets = "distsys-tweets"
+
 type authorize struct {
 	Token string
 }
@@ -38,18 +40,49 @@ func main() {
 	query := flag.String("query", "distributed systems", "Twitter search query")
 	flag.Parse()
 
-	// ENSIGN_CLIENT_ID and ENSIGN_CLIENT_SECRET environment variables must be set
-	var client *ensign.Client
-	if client, err = ensign.New(&ensign.Options{
-		Endpoint: "flagship.rotational.dev:443",
-	}); err != nil {
-		panic("failed to create Ensign client: " + err.Error())
+	// Create Ensign Client
+	client, err := ensign.New(&ensign.Options{
+		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
+		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
+		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
+		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
+	})
+	if err != nil {
+		panic(fmt.Errorf("could not create client: %s", err))
 	}
 
-	// Create a publisher from the client
-	var pub ensign.Publisher
-	if pub, err = client.Publish(context.Background()); err != nil {
-		panic("failed to create publisher from client: " + err.Error())
+	// Check to see if topic exists and create it if not
+	exists, err := client.TopicExists(context.Background(), DistSysTweets)
+	if err != nil {
+		panic(fmt.Errorf("unable to check topic existence: %s", err))
+	}
+
+	var topicID string
+	if !exists {
+		if topicID, err = client.CreateTopic(context.Background(), DistSysTweets); err != nil {
+			panic(fmt.Errorf("unable to create topic: %s", err))
+		}
+	} else {
+		topics, err := client.ListTopics(context.Background())
+		if err != nil {
+			panic(fmt.Errorf("unable to retrieve project topics: %s", err))
+		}
+
+		for _, topic := range topics {
+			if topic.Name == DistSysTweets {
+				var topicULID ulid.ULID
+				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
+					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
+				}
+				topicID = topicULID.String()
+			}
+		}
+	}
+
+	// Create Ensign Publisher
+	pub, err := client.Publish(context.Background())
+	if err != nil {
+		panic(fmt.Errorf("could not create publisher: %s", err))
 	}
 	defer pub.Close()
 
@@ -106,7 +139,7 @@ func main() {
 				}
 
 				// Publish the event to Ensign
-				pub.Publish(e)
+				pub.Publish(topicID, e)
 
 				// Check for errors
 				// Note: This is asynchronous so the error might not correspond to the

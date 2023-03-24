@@ -7,7 +7,7 @@ require (
 	github.com/cdipaolo/sentiment v0.0.0-20200617002423-c697f64e7f10
 	github.com/jdkato/prose/v2 v2.0.0
 	github.com/rotationalio/baleen v0.2.1-0.20221110043856-645f7482b919
-	github.com/rotationalio/go-ensign v0.4.1
+	github.com/rotationalio/go-ensign v0.5.1
 )
 
 require (
@@ -20,10 +20,12 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mingrammer/commonregex v1.0.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.0 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rotationalio/ensign v0.1.1 // indirect
 	github.com/rotationalio/watermill-ensign v0.2.0 // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
 	golang.org/x/net v0.6.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect

@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/g8rswimmer/go-twitter/v2 v2.1.5
-	github.com/rotationalio/go-ensign v0.4.1
+	github.com/rotationalio/go-ensign v0.5.1
 )
 
 require (

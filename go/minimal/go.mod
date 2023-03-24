@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/oklog/ulid/v2 v2.1.0
-	github.com/rotationalio/go-ensign v0.4.3-0.20230321200202-5bae0e5bdf20
+	github.com/rotationalio/go-ensign v0.5.1
 )
 
 require (

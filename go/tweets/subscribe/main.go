@@ -4,29 +4,60 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/rotationalio/ensign-examples/go/tweets/schemas"
 	ensign "github.com/rotationalio/go-ensign"
 	api "github.com/rotationalio/go-ensign/api/v1beta1"
 )
 
-func main() {
-	var (
-		err    error
-		client *ensign.Client
-	)
+const DistSysTweets = "distsys-tweets"
 
-	// ENSIGN_CLIENT_ID and ENSIGN_CLIENT_SECRET environment variables must be set
-	if client, err = ensign.New(&ensign.Options{
-		Endpoint: "flagship.rotational.dev:443",
-	}); err != nil {
-		panic("failed to create Ensign client: " + err.Error())
+func main() {
+	// Create Ensign Client
+	client, err := ensign.New(&ensign.Options{
+		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
+		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
+		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
+		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
+	})
+	if err != nil {
+		panic(fmt.Errorf("could not create client: %s", err))
+	}
+
+	// Check to see if topic exists and create it if not
+	exists, err := client.TopicExists(context.Background(), DistSysTweets)
+	if err != nil {
+		panic(fmt.Errorf("unable to check topic existence: %s", err))
+	}
+
+	var topicID string
+	if !exists {
+		if topicID, err = client.CreateTopic(context.Background(), DistSysTweets); err != nil {
+			panic(fmt.Errorf("unable to create topic: %s", err))
+		}
+	} else {
+		topics, err := client.ListTopics(context.Background())
+		if err != nil {
+			panic(fmt.Errorf("unable to retrieve project topics: %s", err))
+		}
+
+		for _, topic := range topics {
+			if topic.Name == DistSysTweets {
+				var topicULID ulid.ULID
+				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
+					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
+				}
+				topicID = topicULID.String()
+			}
+		}
 	}
 
 	// Create a subscriber from the client
-	var sub ensign.Subscriber
-	if sub, err = client.Subscribe(context.Background()); err != nil {
-		panic("failed to create subscriber from client: " + err.Error())
+	// Create a downstream consumer for the event stream
+	sub, err := client.Subscribe(context.Background(), topicID)
+	if err != nil {
+		panic(fmt.Errorf("could not create subscriber: %s", err))
 	}
 	defer sub.Close()
 
