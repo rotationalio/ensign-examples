@@ -25,11 +25,8 @@ func main() {
 	//create the publisher
 	publisher, err := ensign.NewPublisher(
 		ensign.PublisherConfig{
-			EnsignConfig: &ensign.Options{
-				ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
-				ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-			},
-			Marshaler: ensign.EventMarshaler{},
+			EnsureCreateTopic: true,
+			Marshaler:         ensign.EventMarshaler{},
 		},
 		logger,
 	)

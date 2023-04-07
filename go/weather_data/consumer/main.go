@@ -113,11 +113,8 @@ func createPostgresConnection() *stdSQL.DB {
 func createSubscriber(logger watermill.LoggerAdapter) message.Subscriber {
 	subscriber, err := ensign.NewSubscriber(
 		ensign.SubscriberConfig{
-			EnsignConfig: &ensign.Options{
-				ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
-				ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-			},
-			Unmarshaler: ensign.EventMarshaler{},
+			EnsureCreateTopic: true,
+			Unmarshaler:       ensign.EventMarshaler{},
 		},
 		logger,
 	)
