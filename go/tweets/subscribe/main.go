@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/rotationalio/ensign-examples/go/tweets/schemas"
 	ensign "github.com/rotationalio/go-ensign"
 	api "github.com/rotationalio/go-ensign/api/v1beta1"
