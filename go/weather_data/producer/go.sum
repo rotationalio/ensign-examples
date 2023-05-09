@@ -2,7 +2,11 @@ github.com/ThreeDotsLabs/watermill v1.2.0 h1:TU3TML1dnQ/ifK09F2+4JQk2EKhmhXe7Qv7
 github.com/ThreeDotsLabs/watermill v1.2.0/go.mod h1:IuVxGk/kgCN0cex2S94BLglUiB0PwOm8hbUhm6g2Nx4=
 github.com/cenkalti/backoff/v3 v3.2.2 h1:cfUAAO3yvKMYKPrvhDuHSwQnhZNk/RMHKdZqKTxfm6M=
 github.com/cenkalti/backoff/v3 v3.2.2/go.mod h1:cIeZDE3IrqwwJl6VUwCN6trj1oXrTS4rc0ij+ULvLYs=
+github.com/cenkalti/backoff/v4 v4.2.0 h1:HN5dHm3WBOgndBH6E8V0q2jIYIR3s9yglV8k/+MN3u4=
+github.com/cenkalti/backoff/v4 v4.2.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/golang-jwt/jwt/v4 v4.5.0 h1:7cYmW1XlMY7h7ii7UhUyChSgS5wUJEnm9uZVTGqOWzg=
+github.com/golang-jwt/jwt/v4 v4.5.0/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
 github.com/golang/protobuf v1.5.3 h1:KhyjKVUg7Usr/dYsdSqoFveMYd5ko72D+zANwlG1mmg=
 github.com/golang/protobuf v1.5.3/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiuN0vRsmY=
@@ -28,10 +32,10 @@ github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwp
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
-github.com/rotationalio/go-ensign v0.5.1 h1:Ye6Mv+RIO2vkrPT0NnZ4RSFVsdo5Gce0NWEnEwU7WYY=
-github.com/rotationalio/go-ensign v0.5.1/go.mod h1:tqPQGdnKjNJY88ASXPfm0igLf6EFzC2nthLfXBVJVLw=
-github.com/rotationalio/watermill-ensign v0.2.0 h1:P8AxRPYNj6Fj5n8dCVbOqFckIeQ0MusPoARfBKFtYIQ=
-github.com/rotationalio/watermill-ensign v0.2.0/go.mod h1:OdHqJztUWRj2SRbINn/EbWcMgC9SBquRbHBNu90P3zE=
+github.com/rotationalio/go-ensign v0.6.0 h1:Lzs82aChaqWWOdOa7sbRro/J18Qklh5HwK1+1OQZe3E=
+github.com/rotationalio/go-ensign v0.6.0/go.mod h1:/qZWtHECObSFXVm3S6OL0Xkt3iFhk4SK+f7hmLIQGn8=
+github.com/rotationalio/watermill-ensign v0.6.0 h1:HYv3Cl0411CwTdfNfDcC3OjIrVVQwaoKBockBhewxIE=
+github.com/rotationalio/watermill-ensign v0.6.0/go.mod h1:5nyoLSygtloNF8iTrdvgqnFqzg7SRQ+enGc9THnnYk8=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
