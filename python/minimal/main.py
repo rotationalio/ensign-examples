@@ -39,7 +39,7 @@ async def main():
         "message": "You're looking smart today!",
     }
     data = json.dumps(msg).encode("utf-8")
-    event = Event(data, "APPLICATION_JSON")
+    event = Event(data, mimetype="application/json")
 
     # Create the publisher and subscriber tasks
     pub = publish(client, TOPIC, event)
