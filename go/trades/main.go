@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/oklog/ulid/v2"
 	ensign "github.com/rotationalio/go-ensign"
 	api "github.com/rotationalio/go-ensign/api/v1beta1"
 	mimetype "github.com/rotationalio/go-ensign/mimetype/v1beta1"
@@ -34,7 +33,7 @@ type Response struct {
 
 // Announce is a helper function that takes as input a event chan that gets created by calling sub.Subscribe()
 // and ranges over any events that it receives on the chan, unmarshals them, and prints them out
-func Announce(events <-chan *api.Event) {
+func Announce(events <-chan *ensign.Event) {
 	for tick := range events {
 		trades := &Response{}
 		if err := json.Unmarshal(tick.Data, &trades); err != nil {
@@ -47,13 +46,8 @@ func Announce(events <-chan *api.Event) {
 func main() {
 
 	// Create Ensign Client
-	client, err := ensign.New(&ensign.Options{
-		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
-		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
-	})
-
+	client, err := ensign.New() // if your credentials are already in your bash profile, you don't have to pass anything into New()
+	// client, err := ensign.New(ensign.WithCredentials("YOUR CLIENT ID HERE!", "YOUR CLIENT SECRET HERE!"))
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
 	}
@@ -73,21 +67,10 @@ func main() {
 	} else {
 		// The topic does exist, but we need to figure out what the Topic ID is, so we need
 		// to query the ListTopics method to get back a list of all the topic nickname : topicID mappings
-		topics, err := client.ListTopics(context.Background())
-		if err != nil {
-			panic(fmt.Errorf("unable to retrieve project topics: %s", err))
+		if topicID, err = client.TopicID(context.Background(), Trades); err != nil {
+			panic(fmt.Errorf("unable to get id for topic: %s", err))
 		}
 
-		// Now iterate over that mapping to get the topic we want
-		for _, topic := range topics {
-			if topic.Name == Trades {
-				var topicULID ulid.ULID
-				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
-					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
-				}
-				topicID = topicULID.String()
-			}
-		}
 	}
 
 	key := os.Getenv("FINNHUB_KEY")
@@ -111,22 +94,10 @@ func main() {
 		w.WriteMessage(websocket.TextMessage, msg)
 	}
 
-	// Create the Publisher on the client - we should publish each event to the same publisher
-	pub, err := client.Publish(context.Background())
-	if err != nil {
-		panic("unable to create published from client: " + err.Error())
-	}
-
 	// Create a subscriber  - the same subscriber should be consuming each event that comes down the pipe
-	sub, err := client.Subscribe(context.Background(), topicID)
+	sub, err := client.Subscribe(topicID)
 	if err != nil {
 		fmt.Printf("could not create subscriber: %s", err)
-	}
-
-	// Create event stream on the Subscriber we just made; this event channel is going to get passed into the Announce method
-	var events <-chan *api.Event
-	if events, err = sub.Subscribe(); err != nil {
-		panic("failed to create subscribe stream: " + err.Error())
 	}
 
 	// Loop over each response that is returned by the Finnhub websocket, publish it to the topicID, have the subscriber consume to the events channel
@@ -139,11 +110,13 @@ func main() {
 		}
 		fmt.Println("Message from the websocket server is ", msg)
 
-		e := &api.Event{
+		e := &ensign.Event{
 			Mimetype: mimetype.ApplicationJSON,
 			Type: &api.Type{
-				Name:    "Generic",
-				Version: 1,
+				Name:         "Generic",
+				MajorVersion: 1,
+				MinorVersion: 0,
+				PatchVersion: 0,
 			},
 		}
 
@@ -154,10 +127,10 @@ func main() {
 		// Publish the newly received tick event to the Topic
 		fmt.Printf("Publishing to topic id: %s\n", topicID)
 		time.Sleep(1 * time.Second)
-		pub.Publish(topicID, e)
+		client.Publish(topicID, e)
 
 		// Goroutine to check the events channel to ensure that subscriber is getting all the ticks!
 		time.Sleep(1 * time.Second)
-		go Announce(events)
+		go Announce(sub.C)
 	}
 }
