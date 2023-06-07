@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
-	"github.com/oklog/ulid/v2"
 	ensign "github.com/rotationalio/go-ensign"
 	api "github.com/rotationalio/go-ensign/api/v1beta1"
 	mimetype "github.com/rotationalio/go-ensign/mimetype/v1beta1"
@@ -23,12 +21,8 @@ const CocoaBeans = "chocolate-covered-espresso-beans"
 
 func main() {
 	// Create Ensign Client
-	client, err := ensign.New(&ensign.Options{
-		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
-		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
-	})
+	client, err := ensign.New() // if your credentials are already in your bash profile, you don't have to pass anything into New()
+	// client, err := ensign.New(ensign.WithCredentials("YOUR CLIENT ID HERE!", "YOUR CLIENT SECRET HERE!"))
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
 	}
@@ -45,19 +39,10 @@ func main() {
 			panic(fmt.Errorf("unable to create topic: %s", err))
 		}
 	} else {
-		topics, err := client.ListTopics(context.Background())
-		if err != nil {
-			panic(fmt.Errorf("unable to retrieve project topics: %s", err))
-		}
-
-		for _, topic := range topics {
-			if topic.Name == CocoaBeans {
-				var topicULID ulid.ULID
-				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
-					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
-				}
-				topicID = topicULID.String()
-			}
+		// The topic does exist, but we need to figure out what the Topic ID is, so we need
+		// to query the ListTopics method to get back a list of all the topic nickname : topicID mappings
+		if topicID, err = client.TopicID(context.Background(), CocoaBeans); err != nil {
+			panic(fmt.Errorf("unable to get id for topic: %s", err))
 		}
 	}
 
@@ -67,42 +52,41 @@ func main() {
 		Timestamp: time.Now().String(),
 		Message:   "You're looking smart today!",
 	}
-	e := &api.Event{
+	// Put that unmarshaled data into an Ensign Event struct
+	e := &ensign.Event{
 		Mimetype: mimetype.ApplicationJSON,
 		Type: &api.Type{
-			Name:    "Generic",
-			Version: 1,
+			Name:         "Generic",
+			MajorVersion: 1,
+			MinorVersion: 0,
+			PatchVersion: 0,
 		},
 	}
-	e.Data, _ = json.Marshal(data)
-
-	// Create Ensign Publisher
-	pub, err := client.Publish(context.Background())
-	if err != nil {
-		panic(fmt.Errorf("could not create publisher: %s", err))
+	// Remarshal the Ensign Event so it's ready to publish!
+	if e.Data, err = json.Marshal(data); err != nil {
+		panic("could not marshal data to JSON: " + err.Error())
 	}
 
-	// Create a downstream consumer for the event stream
-	sub, err := client.Subscribe(context.Background(), topicID)
+	// Create a subscriber  - the same subscriber should be consuming each event that comes down the pipe
+	sub, err := client.Subscribe(topicID) // topic alias also works
 	if err != nil {
 		panic(fmt.Errorf("could not create subscriber: %s", err))
 	}
 
-	var events <-chan *api.Event
-	if events, err = sub.Subscribe(); err != nil {
-		panic("failed to create subscribe stream: " + err.Error())
-	}
-
 	fmt.Printf("Publishing to topic id: %s\n", topicID)
+	time.Sleep(1 * time.Second)
 
 	// Publish the message in a bottle after waiting for a second
-	go func() {
-		time.Sleep(1 * time.Second)
-		pub.Publish(topicID, e)
-	}()
+	// On publish, the client checks to see if it has an open publish stream created
+	// and if it doesn't it opens a stream to the correct Ensign node.
+	// Topic alias also works
+	client.Publish(topicID, e)
+	// client.Publish(topicID, e, a, f, h) // Can publish a couple events if you want!
+	// client.Publish(differentTopicId, e) // or, if you Publish to a second, valid topicID, the Ensign client will create another new Publisher!
 
-	// Wait for events to come from the subscriber.
-	for msg := range events {
+	// Goroutine to check the events channel to ensure that subscriber is getting all the events!
+	time.Sleep(1 * time.Second)
+	for msg := range sub.C {
 		var m MessageInABottle
 		if err := json.Unmarshal(msg.Data, &m); err != nil {
 			panic(fmt.Errorf("failed to unmarshal message: %s", err))
