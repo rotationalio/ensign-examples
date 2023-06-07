@@ -10,7 +10,6 @@ import (
 
 	"context"
 
-	"github.com/oklog/ulid/v2"
 	twitter "github.com/g8rswimmer/go-twitter/v2"
 	"github.com/rotationalio/ensign-examples/go/tweets/schemas"
 	ensign "github.com/rotationalio/go-ensign"
@@ -42,12 +41,7 @@ func main() {
 	flag.Parse()
 
 	// Create Ensign Client
-	client, err := ensign.New(&ensign.Options{
-		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
-		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
-	})
+	client, err := ensign.New() // if your credentials are already in your bash profile, you don't have to pass anything into New()
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
 	}
@@ -64,28 +58,12 @@ func main() {
 			panic(fmt.Errorf("unable to create topic: %s", err))
 		}
 	} else {
-		topics, err := client.ListTopics(context.Background())
-		if err != nil {
-			panic(fmt.Errorf("unable to retrieve project topics: %s", err))
-		}
-
-		for _, topic := range topics {
-			if topic.Name == DistSysTweets {
-				var topicULID ulid.ULID
-				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
-					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
-				}
-				topicID = topicULID.String()
-			}
+		// The topic does exist, but we need to figure out what the Topic ID is, so we need
+		// to query the ListTopics method to get back a list of all the topic nickname : topicID mappings
+		if topicID, err = client.TopicID(context.Background(), DistSysTweets); err != nil {
+			panic(fmt.Errorf("unable to get id for topic: %s", err))
 		}
 	}
-
-	// Create Ensign Publisher
-	pub, err := client.Publish(context.Background())
-	if err != nil {
-		panic(fmt.Errorf("could not create publisher: %s", err))
-	}
-	defer pub.Close()
 
 	tweets := &twitter.Client{
 		Authorizer: authorize{
@@ -121,12 +99,13 @@ func main() {
 			}
 
 			for _, tweet := range rep.Raw.Tweets {
-				e := &api.Event{
-					TopicId:  "tweets",
+				e := &ensign.Event{
 					Mimetype: mimetype.ApplicationJSON,
 					Type: &api.Type{
-						Name:    "tweet",
-						Version: 1,
+						Name:         "tweet",
+						MajorVersion: 1,
+						MinorVersion: 0,
+						PatchVersion: 0,
 					},
 				}
 
@@ -139,15 +118,10 @@ func main() {
 					panic("could not marshal tweet to JSON: " + err.Error())
 				}
 
-				// Publish the event to Ensign
-				pub.Publish(topicID, e)
-
-				// Check for errors
-				// Note: This is asynchronous so the error might not correspond to the
-				// most recently published event
-				if err = pub.Err(); err != nil {
-					panic("failed to publish event(s): " + err.Error())
-				}
+				// On publish, the client checks to see if it has an open publish stream created
+				// and if it doesn't it opens a stream to the correct Ensign node.
+				// Topic alias also works
+				client.Publish(topicID, e)
 
 				fmt.Printf("published tweet with ID: %s\n", tweet.ID)
 			}

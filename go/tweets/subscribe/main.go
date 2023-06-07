@@ -4,24 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/rotationalio/ensign-examples/go/tweets/schemas"
 	ensign "github.com/rotationalio/go-ensign"
-	api "github.com/rotationalio/go-ensign/api/v1beta1"
 )
 
 const DistSysTweets = "distsys-tweets"
 
 func main() {
 	// Create Ensign Client
-	client, err := ensign.New(&ensign.Options{
-		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
-		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
-	})
+	client, err := ensign.New() // if your credentials are already in your bash profile, you don't have to pass anything into New()
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
 	}
@@ -38,38 +30,22 @@ func main() {
 			panic(fmt.Errorf("unable to create topic: %s", err))
 		}
 	} else {
-		topics, err := client.ListTopics(context.Background())
-		if err != nil {
-			panic(fmt.Errorf("unable to retrieve project topics: %s", err))
-		}
-
-		for _, topic := range topics {
-			if topic.Name == DistSysTweets {
-				var topicULID ulid.ULID
-				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
-					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
-				}
-				topicID = topicULID.String()
-			}
+		// The topic does exist, but we need to figure out what the Topic ID is, so we need
+		// to query the ListTopics method to get back a list of all the topic nickname : topicID mappings
+		if topicID, err = client.TopicID(context.Background(), DistSysTweets); err != nil {
+			panic(fmt.Errorf("unable to get id for topic: %s", err))
 		}
 	}
 
 	// Create a subscriber from the client
 	// Create a downstream consumer for the event stream
-	sub, err := client.Subscribe(context.Background(), topicID)
+	sub, err := client.Subscribe(topicID)
 	if err != nil {
 		panic(fmt.Errorf("could not create subscriber: %s", err))
 	}
-	defer sub.Close()
-
-	// Create the event stream as a channel
-	var events <-chan *api.Event
-	if events, err = sub.Subscribe(); err != nil {
-		panic("failed to create subscribe stream: " + err.Error())
-	}
 
 	// Events are processed as they show up on the channel
-	for event := range events {
+	for event := range sub.C {
 		tweet := &schemas.Tweet{}
 		if err = json.Unmarshal(event.Data, tweet); err != nil {
 			panic("failed to unmarshal event: " + err.Error())
