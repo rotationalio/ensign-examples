@@ -1,0 +1,5 @@
+grpcio==1.56.0
+protobuf==4.23.3
+pyensign==0.7.1b1
+PyJWT==2.7.0
+python-ulid==1.1.0
