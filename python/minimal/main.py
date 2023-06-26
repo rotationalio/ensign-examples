@@ -5,21 +5,28 @@ from datetime import datetime
 from pyensign.ensign import Ensign
 from pyensign.events import Event
 
+
+
 TOPIC = "chocolate-covered-espresso-beans"
 
-async def publish(client, topic, events):
-    await asyncio.sleep(1)
-    errors = await client.publish(topic, events)
-    if errors:
-        print("Failed to publish events: {}".format(errors))
-    return errors
+# An asyncio Event object manages an internal flag that can be set to true with the
+# set() method and reset to false with the clear() method. The wait() method blocks
+# until the flag is set to true. The flag is set to false initially.
+# That means we can use it to communicate between the publisher (which should create a
+# "wait" signal) and the subscriber (which will acknowledge the event with `set`)
+RECEIVED = asyncio.Event()
 
-async def subscribe(client, topic):
-    id = await(client.topic_id(topic))
-    async for event in client.subscribe(id):
-        msg = json.loads(event.data)
-        print("At {}, {} sent you the following message: {}".format(msg["timestamp"], msg["sender"], msg["message"]))
-        return event
+
+async def print_single_event(event):
+    msg = json.loads(event.data)
+    print(
+        "At {}, {} sent you the following message: {}".format(
+            msg["timestamp"], msg["sender"], msg["message"]
+        )
+    )
+    # Let the program know that the event has been acknowledged by the subscriber
+    await RECEIVED.set()
+
 
 async def main():
     # Create an Ensign client
@@ -29,8 +36,7 @@ async def main():
     )
 
     # Create topic if it doesn't exist
-    if not await client.topic_exists(TOPIC):
-        await client.create_topic(TOPIC)
+    await client.ensure_topic_exists(TOPIC)
 
     # Create an event with some data
     msg = {
@@ -41,12 +47,20 @@ async def main():
     data = json.dumps(msg).encode("utf-8")
     event = Event(data, mimetype="application/json")
 
-    # Create the publisher and subscriber tasks
-    pub = publish(client, TOPIC, event)
-    sub = subscribe(client, TOPIC)
+    # Set up the subscriber and add a short sleep -- this stuff happens fast!
+    # TODO can switch publish/subscribe order after persistence merged in Ensign core
+    await client.subscribe(TOPIC, on_event=print_single_event)
+    await asyncio.sleep(1)
 
-    # Wait for the tasks to complete
-    await asyncio.gather(pub, sub)
+    # Set up publisher and notify the program to wait until the event is acknowledged
+    # by the subscriber
+    await client.publish(TOPIC, event)
+    await RECEIVED.wait()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # TODO in Python>3.10
+    # TODO need to ignore DeprecationWarning: There is no current event loop
+    import warnings
+    warnings.filterwarnings("ignore")
+
+    asyncio.get_event_loop().run_until_complete(main())
