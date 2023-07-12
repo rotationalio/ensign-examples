@@ -1,64 +1,96 @@
 import json
 import asyncio
-from datetime import datetime
+import msgpack
+import warnings
 
 from pyensign.ensign import Ensign
-from pyensign.events import Event
-from pyensign.api.v1beta1.ensign_pb2 import Nack   
-
-
-
-TOPIC = "documents"
-
-# An asyncio Event object manages an internal flag that can be set to true with the
-# set() method and reset to false with the clear() method. The wait() method blocks
-# until the flag is set to true. The flag is set to false initially.
-# That means we can use it to communicate between the publisher (which should create a
-# "wait" signal) and the subscriber (which will acknowledge the event with `set`)
-RECEIVED = asyncio.Event()
-
-
-async def print_single_event(event):
-    
-    msg = json.loads(event.data)
-    
-    print(msg)
-
+from pyensign.api.v1beta1.ensign_pb2 import Nack  
  
+from bs4 import BeautifulSoup
+from textblob import TextBlob
+import spacy
 
-async def handle_event(event):
+
+# TODO in Python>3.10
+# TODO need to ignore DeprecationWarning: There is no current event loop
+warnings.filterwarnings("ignore")
+
+class BaleenSubscriber:
     """
-    Decode and ack the event.
+    Implementing an event-driven Natural Language Processing tool that 
+    does streaming HTML parsing, entity extraction, and sentiment analysis
     """
-    try:
-        data = json.loads(event.data)
-    except json.JSONDecodeError:
-        print("Received invalid JSON in event payload:", event.data)
-        await event.nack(Nack.Code.UNKNOWN_TYPE)
-        return
-
-    print("New document received:", data)
-    await event.ack()
-
-async def main():
-    # Create an Ensign client
-    client = Ensign()
+    def __init__(self, topic="documents"):
+        """
+        Initilaize the BaleenSubscriber, which will allow a data consumer
+        to subscribe to the topic that the publisher is pushing articles
+        """
+        
+        self.topic = topic
+        self.ensign = Ensign(
+            client_id = 'TwggMcedZxmrbBLPgoNSFfRSioTZEPhk',
+            client_secret = 'K5l9i4HLz4kmiyFNkelfYoA5pzGBBcVnFzJtdtBWZAwnsyIhWH5uGqGxsL7duB9c'
+            )
+        self.NER = spacy.load('en_core_web_sm')
     
-    #await client.ensure_topic_exists(TOPIC)
-    topic_id = await client.topic_id(TOPIC)
+    def run(self):
+        """
+        Run the subscriber forever.
+        """
+        asyncio.get_event_loop().run_until_complete(self.subscribe())
     
-    # Set up the subscriber and add a short sleep -- this stuff happens fast!
-    # TODO can switch publish/subscribe order after persistence merged in Ensign core
-    await client.subscribe(topic_id, on_event=handle_event)
-    await asyncio.Future()
+    async def handle_event(self,event):
+        """
+        Decode and ack the event.
     
-    #await client.subscribe(TOPIC, on_event=print_single_event)
-    #await asyncio.sleep(5)
+        ----------------
+        Unpacking of the event message and working on the article content for 
+        NLP Magic
+        """
+        
+        try:
+            data = msgpack.unpackb(event.data)
+        except json.JSONDecodeError:
+            print("Received invalid JSON in event payload:", event.data)
+            await event.nack(Nack.Code.UNKNOWN_TYPE)
+            return
+    
+        # Parsing the content using BeautifulSoup
+        soup = BeautifulSoup(data['content'], 'html.parser')
+        # Finding all the 'p' tags in the parsed content
+        paras = soup.find_all('p')
+        score = []
+        ner_dict = {}
+        for para in paras:
+            text = TextBlob(para.get_text())
+            score.append(text.sentiment.polarity)
+            ner_text = self.NER(str(para.get_text()))
+            for word in ner_text.ents:
+                if word.label_ in ner_dict.keys():
+                    if word.text not in ner_dict[word.label_]:
+                        ner_dict[word.label_].append(word.text)
+                else :
+                    ner_dict[word.label_] = [word.text]
+                     
+        print("\nSentiment Average Score : ", sum(score) / len(score))
+        print("\n------------------------------\n")
+        print("Named Entities : \n",json.dumps( 
+                ner_dict,
+                sort_keys=True,
+                indent=4,
+                separators=(',', ': ')
+                )
+              )
+        await event.ack()
+    
+    async def subscribe(self):
+       """
+       Subscribe to the article and parse the events.
+       """
+       id = await self.ensign.topic_id(self.topic)
+       await self.ensign.subscribe(id, on_event=self.handle_event)
+       await asyncio.Future()
 
 if __name__ == "__main__":
-    # TODO in Python>3.10
-    # TODO need to ignore DeprecationWarning: There is no current event loop
-    import warnings
-    warnings.filterwarnings("ignore")
-    #asyncio.run(main())
-    asyncio.get_event_loop().run_until_complete(main())
+    subscriber = BaleenSubscriber()
+    subscriber.run()
