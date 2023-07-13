@@ -14,7 +14,13 @@ from pyensign.api.v1beta1.ensign_pb2 import Nack
 # local package components
 from config import ENSIGN_CLIENT_ID, ENSIGN_CLIENT_SECRET
 
-
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    raise OSError(
+        """SpaCy model required for entity extraction!
+        Run: python -m spacy download en_core_web_sm"""
+    )
 
 # TODO in Python>3.10
 # TODO need to ignore DeprecationWarning: There is no current event loop

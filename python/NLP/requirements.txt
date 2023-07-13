@@ -1,13 +1,12 @@
 beautifulsoup4==4.12.2
 blis==0.7.9
-bs4==0.0.1
 catalogue==2.0.8
 certifi==2023.5.7
 charset-normalizer==3.2.0
-click==8.1.4
+click==8.1.5
 confection==0.1.0
 cymem==2.0.7
-en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0-py3-none-any.whl
+# en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0-py3-none-any.whl
 grpcio==1.56.0
 idna==3.4
 Jinja2==3.1.2
