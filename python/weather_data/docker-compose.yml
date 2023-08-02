@@ -1,0 +1,19 @@
+version: '3'
+services:
+  publisher:
+    build: .
+    command: python -u publisher.py
+    environment:
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
+      WEATHER_TOPIC: ${WEATHER_TOPIC}
+      WEATHER_LOCATION: ${WEATHER_LOCATION}
+      ENSIGN_CLIENT_ID: ${ENSIGN_CLIENT_ID}
+      ENSIGN_CLIENT_SECRET: ${ENSIGN_CLIENT_SECRET}
+
+  subscriber:
+    build: .
+    command: python -u subscriber.py
+    environment:
+      WEATHER_TOPIC: ${WEATHER_TOPIC}
+      ENSIGN_CLIENT_ID: ${ENSIGN_CLIENT_ID}
+      ENSIGN_CLIENT_SECRET: ${ENSIGN_CLIENT_SECRET}

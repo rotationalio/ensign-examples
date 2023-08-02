@@ -1,0 +1,2 @@
+pyensign>=0.8b0
+requests==2.31.0
