@@ -42,8 +42,8 @@ class BaleenSubscriber:
         """
         Run the subscriber forever.
         """
-        asyncio.get_event_loop().run_until_complete(self.subscribe())
-
+        asyncio.run(self.subscribe())
+        
     async def handle_event(self,event):
         """
         Decode and ack the event.
@@ -52,7 +52,6 @@ class BaleenSubscriber:
         Unpacking of the event message and working on the article content for
         NLP Magic
         """
-
         try:
             data = msgpack.unpackb(event.data)
         except json.JSONDecodeError:
@@ -61,7 +60,7 @@ class BaleenSubscriber:
             return
 
         # Parsing the content using BeautifulSoup
-        soup = BeautifulSoup(data['content'], 'html.parser')
+        soup = BeautifulSoup(data[b'content'], 'html.parser')
         # Finding all the 'p' tags in the parsed content
         paras = soup.find_all('p')
         score = []
@@ -93,7 +92,8 @@ class BaleenSubscriber:
        Subscribe to the article and parse the events.
        """
        id = await self.ensign.topic_id(self.topic)
-       await self.ensign.subscribe(id, on_event=self.handle_event)
+       async for event in self.ensign.subscribe(id):
+            await self.handle_event(event)
        await asyncio.Future()
 
 if __name__ == "__main__":

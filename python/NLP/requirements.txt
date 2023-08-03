@@ -23,7 +23,7 @@ pathy==0.10.2
 preshed==3.0.8
 protobuf==4.23.4
 pydantic==1.10.11
-pyensign==0.7.2b1
+pyensign>=0.8.0b0
 PyJWT==2.7.0
 python-ulid==1.1.0
 regex==2023.6.3
