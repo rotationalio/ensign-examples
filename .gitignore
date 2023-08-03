@@ -1,3 +1,6 @@
 *.DS_Store
 
 /python/nlp/config.py
+/python/nlp/__pycache__
+/python/nlp/subscriber_v1.py
+/python/nlp/secret

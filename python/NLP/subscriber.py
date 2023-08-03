@@ -1,7 +1,6 @@
 # everything that is part of the standard library
 import json
 import asyncio
-import warnings
 
 # everything that has to get pip or conda installed
 import spacy
@@ -11,21 +10,13 @@ from textblob import TextBlob
 from pyensign.ensign import Ensign
 from pyensign.api.v1beta1.ensign_pb2 import Nack
 
-# local package components
-from config import ENSIGN_CLIENT_ID, ENSIGN_CLIENT_SECRET
-
-
-
-# TODO in Python>3.10
-# TODO need to ignore DeprecationWarning: There is no current event loop
-warnings.filterwarnings("ignore")
 
 class BaleenSubscriber:
     """
     Implementing an event-driven Natural Language Processing tool that
     does streaming HTML parsing, entity extraction, and sentiment analysis
     """
-    def __init__(self, topic="documents", client_id=ENSIGN_CLIENT_ID, client_secret=ENSIGN_CLIENT_SECRET):
+    def __init__(self, topic="documents", ensign_creds =''):
         """
         Initilaize the BaleenSubscriber, which will allow a data consumer
         to subscribe to the topic that the publisher is pushing articles
@@ -33,8 +24,7 @@ class BaleenSubscriber:
 
         self.topic = topic
         self.ensign = Ensign(
-            client_id=client_id,
-            client_secret=client_secret
+            cred_path=ensign_creds
         )
         self.NER = spacy.load('en_core_web_sm')
 
@@ -47,11 +37,11 @@ class BaleenSubscriber:
     async def handle_event(self,event):
         """
         Decode and ack the event.
-
         ----------------
         Unpacking of the event message and working on the article content for
         NLP Magic
         """
+
         try:
             data = msgpack.unpackb(event.data)
         except json.JSONDecodeError:
@@ -93,9 +83,8 @@ class BaleenSubscriber:
        """
        id = await self.ensign.topic_id(self.topic)
        async for event in self.ensign.subscribe(id):
-            await self.handle_event(event)
-       await asyncio.Future()
+           await self.handle_event(event)
 
 if __name__ == "__main__":
-    subscriber = BaleenSubscriber()
+    subscriber = BaleenSubscriber(ensign_creds = 'secret/ensign_creds.json')
     subscriber.run()
