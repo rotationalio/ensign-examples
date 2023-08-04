@@ -1,0 +1,6 @@
+*.pyc
+__pycache__/*
+secret/
+
+config.py
+subscriber_v1.py

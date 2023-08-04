@@ -10,13 +10,12 @@ from textblob import TextBlob
 from pyensign.ensign import Ensign
 from pyensign.api.v1beta1.ensign_pb2 import Nack
 
-
 class BaleenSubscriber:
     """
     Implementing an event-driven Natural Language Processing tool that
     does streaming HTML parsing, entity extraction, and sentiment analysis
     """
-    def __init__(self, topic="documents", ensign_creds =''):
+    def __init__(self, topic="documents", ensign_creds=""):
         """
         Initilaize the BaleenSubscriber, which will allow a data consumer
         to subscribe to the topic that the publisher is pushing articles
