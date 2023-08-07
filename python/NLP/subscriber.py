@@ -16,9 +16,9 @@ class BaleenSubscriber:
     Implementing an event-driven Natural Language Processing tool that
     does streaming HTML parsing, entity extraction, and sentiment analysis
     """
-    def __init__(self, topic="documents", ensign_creds =''):
+    def __init__(self, topic="documents", ensign_creds=''):
         """
-        Initilaize the BaleenSubscriber, which will allow a data consumer
+        Initialize the BaleenSubscriber, which will allow a data consumer
         to subscribe to the topic that the publisher is pushing articles
         """
 
@@ -34,23 +34,23 @@ class BaleenSubscriber:
         """
         asyncio.run(self.subscribe())
         
-    async def handle_event(self,event):
+    async def parse_event(self,event):
         """
         Decode and ack the event.
         ----------------
-        Unpacking of the event message and working on the article content for
-        NLP Magic
+        Decode the msgpack payload, in preparation for applying our NLP "magic"
         """
 
         try:
             data = msgpack.unpackb(event.data)
-        except json.JSONDecodeError:
-            print("Received invalid JSON in event payload:", event.data)
+        except Exception:
+            print("Received invalid msgpack data in event payload:", event.data)
             await event.nack(Nack.Code.UNKNOWN_TYPE)
             return
 
         # Parsing the content using BeautifulSoup
         soup = BeautifulSoup(data[b'content'], 'html.parser')
+
         # Finding all the 'p' tags in the parsed content
         paras = soup.find_all('p')
         score = []
@@ -83,7 +83,7 @@ class BaleenSubscriber:
        """
        id = await self.ensign.topic_id(self.topic)
        async for event in self.ensign.subscribe(id):
-           await self.handle_event(event)
+           await self.parse_event(event)
 
 if __name__ == "__main__":
     subscriber = BaleenSubscriber(ensign_creds = 'secret/ensign_creds.json')
