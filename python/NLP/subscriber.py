@@ -33,7 +33,7 @@ class BaleenSubscriber:
         """
         asyncio.run(self.subscribe())
         
-    async def parse_event(self,event):
+    async def parse_event(self, event):
         """
         Decode and ack the event.
         ----------------
@@ -49,7 +49,6 @@ class BaleenSubscriber:
 
         # Parsing the content using BeautifulSoup
         soup = BeautifulSoup(data[b'content'], 'html.parser')
-
         # Finding all the 'p' tags in the parsed content
         paras = soup.find_all('p')
         score = []
