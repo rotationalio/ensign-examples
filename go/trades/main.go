@@ -58,19 +58,11 @@ func main() {
 		panic(fmt.Errorf("unable to check topic existence: %s", err))
 	}
 
-	var topicID string
 	// If the topic does not exist, create it using the CreateTopic method
 	if !exists {
-		if topicID, err = client.CreateTopic(context.Background(), Trades); err != nil {
+		if _, err = client.CreateTopic(context.Background(), Trades); err != nil {
 			panic(fmt.Errorf("unable to create topic: %s", err))
 		}
-	} else {
-		// The topic does exist, but we need to figure out what the Topic ID is, so we need
-		// to query the ListTopics method to get back a list of all the topic nickname : topicID mappings
-		if topicID, err = client.TopicID(context.Background(), Trades); err != nil {
-			panic(fmt.Errorf("unable to get id for topic: %s", err))
-		}
-
 	}
 
 	key := os.Getenv("FINNHUB_KEY")
@@ -95,7 +87,7 @@ func main() {
 	}
 
 	// Create a subscriber  - the same subscriber should be consuming each event that comes down the pipe
-	sub, err := client.Subscribe(topicID)
+	sub, err := client.Subscribe(Trades)
 	if err != nil {
 		fmt.Printf("could not create subscriber: %s", err)
 	}
@@ -125,9 +117,11 @@ func main() {
 		}
 
 		// Publish the newly received tick event to the Topic
-		fmt.Printf("Publishing to topic id: %s\n", topicID)
+		fmt.Printf("Publishing to topic: %s\n", Trades)
 		time.Sleep(1 * time.Second)
-		client.Publish(topicID, e)
+		if err = client.Publish(Trades, e); err != nil {
+			panic("could not publish event: " + err.Error())
+		}
 
 		// Goroutine to check the events channel to ensure that subscriber is getting all the ticks!
 		time.Sleep(1 * time.Second)

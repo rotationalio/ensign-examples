@@ -33,16 +33,9 @@ func main() {
 		panic(fmt.Errorf("unable to check topic existence: %s", err))
 	}
 
-	var topicID string
 	if !exists {
-		if topicID, err = client.CreateTopic(context.Background(), CocoaBeans); err != nil {
+		if _, err = client.CreateTopic(context.Background(), CocoaBeans); err != nil {
 			panic(fmt.Errorf("unable to create topic: %s", err))
-		}
-	} else {
-		// The topic does exist, but we need to figure out what the Topic ID is, so we need
-		// to query the ListTopics method to get back a list of all the topic nickname : topicID mappings
-		if topicID, err = client.TopicID(context.Background(), CocoaBeans); err != nil {
-			panic(fmt.Errorf("unable to get id for topic: %s", err))
 		}
 	}
 
@@ -68,19 +61,21 @@ func main() {
 	}
 
 	// Create a subscriber  - the same subscriber should be consuming each event that comes down the pipe
-	sub, err := client.Subscribe(topicID) // topic alias also works
+	sub, err := client.Subscribe(CocoaBeans) // topic alias also works
 	if err != nil {
 		panic(fmt.Errorf("could not create subscriber: %s", err))
 	}
 
-	fmt.Printf("Publishing to topic id: %s\n", topicID)
+	fmt.Printf("Publishing to topic: %s\n", CocoaBeans)
 	time.Sleep(1 * time.Second)
 
 	// Publish the message in a bottle after waiting for a second
 	// On publish, the client checks to see if it has an open publish stream created
 	// and if it doesn't it opens a stream to the correct Ensign node.
 	// Topic alias also works
-	client.Publish(topicID, e)
+	if err = client.Publish(CocoaBeans, e); err != nil {
+		panic(fmt.Errorf("could not publish event: %s", err))
+	}
 	// client.Publish(topicID, e, a, f, h) // Can publish a couple events if you want!
 	// client.Publish(differentTopicId, e) // or, if you Publish to a second, valid topicID, the Ensign client will create another new Publisher!
 

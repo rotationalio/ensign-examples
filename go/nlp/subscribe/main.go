@@ -12,7 +12,6 @@ import (
 	post "github.com/rotationalio/baleen/events"
 	"github.com/rotationalio/ensign-examples/go/nlp/parse"
 	ensign "github.com/rotationalio/go-ensign"
-	api "github.com/rotationalio/go-ensign/api/v1beta1"
 )
 
 // This is the nickname of the topic, which gets mapped to an ID that actually gets used by Ensign
@@ -20,12 +19,7 @@ const Baleen = "baleen-docs"
 
 func main() {
 	// Create Ensign Client
-	client, err := ensign.New(&ensign.Options{
-		ClientID:     os.Getenv("ENSIGN_CLIENT_ID"),
-		ClientSecret: os.Getenv("ENSIGN_CLIENT_SECRET"),
-		// AuthURL:      "https://auth.ensign.world", // uncomment if you are in staging
-		// Endpoint:     "staging.ensign.world:443",  // uncomment if you are in staging
-	})
+	client, err := ensign.New()
 	if err != nil {
 		panic(fmt.Errorf("could not create client: %s", err))
 	}
@@ -37,30 +31,14 @@ func main() {
 		panic(fmt.Errorf("unable to check topic existence: %s", err))
 	}
 
-	var topicID string
 	if !exists {
-		if topicID, err = client.CreateTopic(context.Background(), Baleen); err != nil {
+		if _, err = client.CreateTopic(context.Background(), Baleen); err != nil {
 			panic(fmt.Errorf("unable to create topic: %s", err))
-		}
-	} else {
-		topics, err := client.ListTopics(context.Background())
-		if err != nil {
-			panic(fmt.Errorf("unable to retrieve project topics: %s", err))
-		}
-
-		for _, topic := range topics {
-			if topic.Name == Baleen {
-				var topicULID ulid.ULID
-				if err = topicULID.UnmarshalBinary(topic.Id); err != nil {
-					panic(fmt.Errorf("unable to retrieve requested topic: %s", err))
-				}
-				topicID = topicULID.String()
-			}
 		}
 	}
 
 	// Create a downstream consumer for the event stream
-	sub, err := client.Subscribe(context.Background(), topicID)
+	sub, err := client.Subscribe(Baleen)
 	if err != nil {
 		panic(fmt.Errorf("could not create subscriber: %s", err))
 	}
@@ -79,14 +57,8 @@ func main() {
 	}
 	defer f.Close()
 
-	// Create the event stream as a channel
-	var events <-chan *api.Event
-	if events, err = sub.Subscribe(); err != nil {
-		panic("failed to create subscribe stream: " + err.Error())
-	}
-
 	// Events are processed as they show up on the channel
-	for event := range events {
+	for event := range sub.C {
 		if event.Type.Name == "FeedItem" {
 			fmt.Printf("FeedItem detected at %s\n", time.Now().String())
 		}

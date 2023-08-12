@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -116,7 +116,7 @@ func GetCurrentWeather() (ApiWeatherInfo, error) {
 	if resp.StatusCode != 200 {
 		return ApiWeatherInfo{}, errors.New("did not receive 200 response code")
 	}
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	// unmarshall the body into a Response struct
 	var response Response
 	err = json.Unmarshal(body, &response)
