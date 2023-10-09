@@ -1,0 +1,4 @@
+plotly==5.17.0
+pyensign==0.10b0
+streamlit==1.27.2
+websockets==11.0.3
