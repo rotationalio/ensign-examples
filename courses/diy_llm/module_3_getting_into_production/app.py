@@ -1,4 +1,3 @@
-import os
 import asyncio
 import streamlit as st
 from pyensign.ensign import Ensign
@@ -23,11 +22,10 @@ async def app(ensign):
     model_path = models.iloc[-1]["model_path"]
     model_version = models.iloc[-1]["model_version"]
     st.write("Using model {} @ {}".format(model_path, model_version))
-    model = AutoModelForSequenceClassification.from_pretrained(model_path)
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = AutoModelForSequenceClassification.from_pretrained(model_path, revision=model_version)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, revision=model_version)
     sent = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
     handle_input(sent)
 
 if __name__ == "__main__":
-    ensign = Ensign(client_id=os.environ["ENSIGN_CLIENT_ID"], client_secret=os.environ["ENSIGN_CLIENT_SECRET"])
-    asyncio.run(app(ensign))
+    asyncio.run(app(Ensign())),
