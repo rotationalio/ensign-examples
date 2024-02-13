@@ -78,6 +78,7 @@ class Trainer:
                 latest = name
         model_path = os.path.join(self.output_dir, latest)
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
 
         hub_path = f"{hub_username}/{model_name}"
         data = {
@@ -99,5 +100,6 @@ class Trainer:
             schema_version=self.version,
         )
 
-        model.push_to_hub(model_name, token=hub_token)
+        model.push_to_hub(model_name, token=hub_token, revision=self.version)
+        tokenizer.push_to_hub(model_name, token=hub_token, revision=self.version)
         await self.ensign.publish(self.model_topic, event)
